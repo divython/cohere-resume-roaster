@@ -1,7 +1,38 @@
-
 import streamlit as st
 import cohere
 import PyPDF2
+
+# Add custom CSS for better dark theme support
+st.markdown("""
+<style>
+    /* Dark theme overrides */
+    .stApp {
+        background-color: #0d1117;
+    }
+    
+    .stSelectbox > div > div {
+        background-color: #21262d;
+        color: #f0f6fc;
+    }
+    
+    .stRadio > div {
+        background-color: #21262d;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #30363d;
+    }
+    
+    .stSpinner > div {
+        color: #ff4500 !important;
+    }
+    
+    /* Make comment boxes properly sized */
+    div[data-testid="stMarkdownContainer"] div {
+        max-width: 100% !important;
+        width: fit-content !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # --- Configuration ---
 # It's recommended to use Streamlit's secrets management for API keys
@@ -38,6 +69,16 @@ st.markdown("---")
 # --- File Uploader ---
 uploaded_file = st.file_uploader("Choose a resume file (PDF)", type="pdf")
 
+# --- Roast Type Selection ---
+if uploaded_file is not None:
+    st.markdown("### 🎯 Choose Your Roast Style")
+    roast_option = st.radio(
+        "Pick your poison:",
+        options=["All Perspectives", "Savage Redditor", "Tech Bro", "Career Coach", "LinkedIn Influencer", "Recruiter"],
+        index=0,
+        help="Select how you want to get roasted!"
+    )
+
 def extract_text_from_pdf(file):
     """Extracts text from a PDF file."""
     try:
@@ -57,58 +98,58 @@ def generate_roast(resume_text, roast_type):
 
     roast_prompts = {
         "savage": """
-        **Roast this resume like a savage Reddit comment.** Be brutal, funny, and concise. Focus on common resume mistakes like buzzwords, vague descriptions, and questionable skills. Act like a ruthless Redditor who's seen it all.
+        **Roast this resume like the most savage, brutal Reddit comment ever.** Be absolutely ruthless, hilarious, and devastating. Don't hold back - tear apart every buzzword, every skill claim, every job description. Make it hurt but make it funny. Use internet slang and be merciless.
 
         **Resume Text:**
         ---
         {resume_text}
         ---
 
-        **Savage Roast:**
+        **Savage Roast (be absolutely brutal):**
         """,
         
         "recruiter": """
-        **Roast this resume from a recruiter's perspective.** Be brutally honest about what makes recruiters cringe. Focus on formatting disasters, skill inflation, and red flags that would make you instantly reject this candidate. Write like a tired recruiter who's seen thousands of bad resumes.
+        **Roast this resume as a recruiter who's completely fed up with terrible resumes.** Be brutally honest about formatting disasters, obvious lies, skill inflation, and red flags that scream "immediate rejection." Channel your inner rage from seeing thousands of awful resumes. Be harsh and specific.
 
         **Resume Text:**
         ---
         {resume_text}
         ---
 
-        **Recruiter's Brutal Honest Take:**
+        **Recruiter's Brutal Reality Check:**
         """,
         
         "tech_bro": """
-        **Roast this resume like a condescending tech bro.** Be sarcastic about their tech stack, question their experience levels, and mock their project descriptions. Use tech industry slang and act superior about your own expertise.
+        **Roast this resume like the most arrogant, condescending tech bro ever.** Be absolutely savage about their tech stack, mock their experience levels brutally, and tear apart their project descriptions. Use heavy tech industry gatekeeping and act like you're infinitely superior. Be ruthless.
 
         **Resume Text:**
         ---
         {resume_text}
         ---
 
-        **Tech Bro Roast:**
+        **Tech Bro's Savage Takedown:**
         """,
         
         "career_coach": """
-        **Roast this resume like a passive-aggressive career coach.** Point out all the things they're doing wrong while pretending to be helpful. Be condescending about their career choices and formatting decisions. Use phrases like "Well, actually..." and "You might want to consider..."
+        **Roast this resume as a passive-aggressive career coach who's secretly furious.** Be brutally condescending while pretending to be helpful. Savage their career choices, destroy their formatting decisions, and be ruthlessly sarcastic. Use phrases like "Well, actually..." but make it hurt.
 
         **Resume Text:**
         ---
         {resume_text}
         ---
 
-        **Career Coach's "Helpful" Feedback:**
+        **Career Coach's Savage "Help":**
         """,
         
         "linkedin_influencer": """
-        **Roast this resume like a LinkedIn influencer.** Be overly dramatic about their career journey, use excessive buzzwords, and make everything sound like a motivational post gone wrong. Start with "Agree?" and use lots of emojis in your critique.
+        **Roast this resume like a LinkedIn influencer having a complete meltdown.** Be overly dramatic and brutal about their career journey, use excessive buzzwords sarcastically, and make everything sound like a motivational disaster. Start with "Agree?" and absolutely destroy them with fake positivity.
 
         **Resume Text:**
         ---
         {resume_text}
         ---
 
-        **LinkedIn Influencer's Hot Take:**
+        **LinkedIn Influencer's Savage Hot Take:**
         """
     }
 
@@ -118,10 +159,10 @@ def generate_roast(resume_text, roast_type):
         response = co.generate(
             model='command-r-plus',
             prompt=prompt,
-            max_tokens=300,
-            temperature=0.9,
+            max_tokens=400,
+            temperature=0.95,
             k=0,
-            p=0.75,
+            p=0.8,
             stop_sequences=[],
             return_likelihoods='NONE'
         )
@@ -136,21 +177,21 @@ def generate_roast(resume_text, roast_type):
 
 
 def create_reddit_comment(username, roast_text, upvotes, avatar_emoji):
-    """Creates a Reddit-style comment component."""
+    """Creates a Reddit-style comment component with dark theme support."""
     return f"""
-    <div style="background-color: #ffffff; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #e0e0e0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <div style="display: flex; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 20px; margin-right: 8px;">{avatar_emoji}</span>
-            <span style="font-weight: bold; color: #1a1a1b; margin-right: 8px;">u/{username}</span>
-            <span style="color: #878a8c; font-size: 12px;">• 2h</span>
+    <div style="background-color: var(--background-color, #1a1a1b); border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border-color, #343536); width: fit-content; max-width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 18px; margin-right: 6px;">{avatar_emoji}</span>
+            <span style="font-weight: bold; color: var(--text-color, #d7dadc); margin-right: 6px; font-size: 13px;">u/{username}</span>
+            <span style="color: var(--secondary-text-color, #818384); font-size: 11px;">• 2h</span>
         </div>
-        <p style="color: #1c1c1c; font-family: 'Segoe UI', sans-serif; line-height: 1.5; margin-bottom: 15px;">{roast_text}</p>
-        <div style="display: flex; align-items: center; color: #878a8c; font-size: 12px;">
-            <span style="margin-right: 15px; color: #ff4500;">▲ {upvotes}</span>
-            <span style="margin-right: 15px; color: #7193ff;">▼</span>
-            <span style="margin-right: 15px; cursor: pointer;">💬 Reply</span>
-            <span style="margin-right: 15px; cursor: pointer;">🔗 Share</span>
-            <span style="margin-right: 15px; cursor: pointer;">⭐ Save</span>
+        <p style="color: var(--text-color, #d7dadc); font-family: 'Segoe UI', sans-serif; line-height: 1.4; margin-bottom: 10px; font-size: 14px; word-wrap: break-word;">{roast_text}</p>
+        <div style="display: flex; align-items: center; color: var(--secondary-text-color, #818384); font-size: 11px;">
+            <span style="margin-right: 12px; color: #ff4500; font-weight: bold;">▲ {upvotes}</span>
+            <span style="margin-right: 12px; color: #7193ff;">▼</span>
+            <span style="margin-right: 12px; cursor: pointer;">💬 Reply</span>
+            <span style="margin-right: 12px; cursor: pointer;">🔗 Share</span>
+            <span style="margin-right: 12px; cursor: pointer;">⭐ Save</span>
             <span style="cursor: pointer;">🏆 Award</span>
         </div>
     </div>
@@ -158,7 +199,7 @@ def create_reddit_comment(username, roast_text, upvotes, avatar_emoji):
 
 
 # --- Main Logic ---
-if uploaded_file is not None:
+if uploaded_file is not None and 'roast_option' in locals():
     with st.spinner("Generating roasts... 🔥"):
         resume_text = extract_text_from_pdf(uploaded_file)
 
@@ -166,14 +207,28 @@ if uploaded_file is not None:
             st.subheader("🔥 r/RoastMyResume Comment Section")
             st.markdown("---")
             
-            # Generate different types of roasts
-            roast_configs = [
-                ("RecruitmentReality", "savage", "😤", 247),
-                ("TechStackSnob", "tech_bro", "🤓", 189),
-                ("CareerCoachKaren", "career_coach", "💼", 156),
-                ("LinkedInInfluencer", "linkedin_influencer", "📈", 134),
-                ("HiringManagerHell", "recruiter", "�", 203)
+            # Define all roast configurations
+            all_roast_configs = [
+                ("SavageRedditor2024", "savage", "😤", 547),
+                ("TechStackElitist", "tech_bro", "🤓", 389),
+                ("CareerCoachKaren", "career_coach", "💼", 256),
+                ("LinkedInInfluencer", "linkedin_influencer", "📈", 234),
+                ("RecruiterFromHell", "recruiter", "💀", 403)
             ]
+            
+            # Filter roast configs based on selection
+            if roast_option == "All Perspectives":
+                roast_configs = all_roast_configs
+            else:
+                roast_type_map = {
+                    "Savage Redditor": "savage",
+                    "Tech Bro": "tech_bro", 
+                    "Career Coach": "career_coach",
+                    "LinkedIn Influencer": "linkedin_influencer",
+                    "Recruiter": "recruiter"
+                }
+                selected_type = roast_type_map[roast_option]
+                roast_configs = [config for config in all_roast_configs if config[1] == selected_type]
             
             # Create progress bar for generating roasts
             progress_bar = st.progress(0)
@@ -194,8 +249,8 @@ if uploaded_file is not None:
             # Add some Reddit-style footer
             st.markdown("---")
             st.markdown("""
-            <div style="text-align: center; color: #878a8c; font-size: 12px; margin-top: 20px;">
-                <p>Want to roast more resumes? Upload another one! 🔥</p>
-                <p>Remember: This is just for fun. Your resume might actually be decent... maybe. 😉</p>
+            <div style="text-align: center; color: var(--secondary-text-color, #818384); font-size: 12px; margin-top: 20px;">
+                <p>🔥 Want to get roasted differently? Try another perspective! 🔥</p>
+                <p>Remember: This is just for fun. Your resume might actually be decent... probably not though. 😈</p>
             </div>
             """, unsafe_allow_html=True)
